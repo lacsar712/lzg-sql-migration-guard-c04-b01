@@ -11,6 +11,9 @@ export class ReportService {
       sqlSummary: result.sqlSummary,
       findings: result.findings,
       parseError: result.parseError,
+      score: result.score,
+      passThreshold: result.passThreshold,
+      gateEnabled: result.gateEnabled,
       summary: this.summarizeFindings(result.findings),
     };
   }

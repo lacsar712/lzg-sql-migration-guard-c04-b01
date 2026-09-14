@@ -110,20 +110,49 @@ export default function AnalyzePage() {
       {error && <Alert severity="error">{error}</Alert>}
       {result && (
         <Box>
-          <Stack direction="row" spacing={1} alignItems="center" mb={1}>
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            mb={1}
+            flexWrap="wrap"
+            useFlexGap
+          >
             <Typography variant="h6">结果</Typography>
             <Chip
               label={result.ok ? '通过' : '未通过'}
               color={result.ok ? 'success' : 'error'}
               size="small"
             />
+            {typeof result.score === 'number' && (
+              <Chip
+                label={`风险分 ${result.score}`}
+                color={result.ok ? 'success' : 'error'}
+                variant="outlined"
+                size="small"
+              />
+            )}
             {result.summary && (
               <Typography variant="body2" color="text.secondary">
                 error {result.summary.error} · warning {result.summary.warning} ·
                 info {result.summary.info}
               </Typography>
             )}
+            <Typography variant="body2" color="text.secondary">
+              {result.gateEnabled
+                ? `通过阈值 ${result.passThreshold}（门禁已启用）`
+                : `通过阈值 ${result.passThreshold}（门禁未启用，分数仅供参考）`}
+            </Typography>
           </Stack>
+          {result.gateEnabled &&
+            !result.ok &&
+            result.summary &&
+            result.summary.error === 0 && (
+              <Alert severity="warning" sx={{ mb: 1 }}>
+                无 error 级 finding，但风险分 {result.score} 低于通过阈值{' '}
+                {result.passThreshold}，按门禁策略判定为未通过。
+              </Alert>
+            )}
           <FindingsTable findings={result.findings || []} />
         </Box>
       )}

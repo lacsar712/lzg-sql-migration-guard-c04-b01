@@ -7,6 +7,12 @@ import {
   RuleDefinition,
 } from '../common/types';
 import { ParserService } from '../parser/parser.service';
+import {
+  computeScore,
+  evaluateOk,
+  loadScorePolicyFromEnv,
+  ScorePolicy,
+} from '../common/score';
 import { applyPolicy, SqlRule } from './rule.types';
 import { noDropTableRule } from './rules/no-drop-table';
 import { noDropColumnRule } from './rules/no-drop-column';
@@ -20,8 +26,22 @@ import { dialectUnsupportedSyntaxRule } from './rules/dialect-unsupported';
 @Injectable()
 export class RuleEngineService implements OnModuleInit {
   private readonly rules = new Map<string, SqlRule>();
+  private scorePolicy: ScorePolicy = loadScorePolicyFromEnv();
 
   constructor(private readonly parser: ParserService) {}
+
+  /** 覆盖计分策略（测试或运行时调整；默认来自 RISK_* 环境变量） */
+  setScorePolicy(policy: Partial<ScorePolicy>) {
+    this.scorePolicy = {
+      ...this.scorePolicy,
+      ...policy,
+      weights: { ...this.scorePolicy.weights, ...(policy.weights || {}) },
+    };
+  }
+
+  getScorePolicy(): ScorePolicy {
+    return this.scorePolicy;
+  }
 
   onModuleInit() {
     this.register(noDropTableRule);
@@ -72,12 +92,16 @@ export class RuleEngineService implements OnModuleInit {
         parseError: parseResult.error,
       });
       findings = applyPolicy(findings, policy);
+      const score = computeScore(findings, this.scorePolicy.weights);
       return {
         ok: false,
         dialect,
         sqlSummary,
         findings,
         parseError: parseResult.error,
+        score,
+        passThreshold: this.scorePolicy.passThreshold,
+        gateEnabled: this.scorePolicy.gateEnabled,
       };
     }
 
@@ -94,11 +118,15 @@ export class RuleEngineService implements OnModuleInit {
 
     findings = applyPolicy(findings, policy);
     const hasError = findings.some((f) => f.severity === 'error');
+    const score = computeScore(findings, this.scorePolicy.weights);
     return {
-      ok: !hasError,
+      ok: evaluateOk(hasError, score, this.scorePolicy),
       dialect,
       sqlSummary,
       findings,
+      score,
+      passThreshold: this.scorePolicy.passThreshold,
+      gateEnabled: this.scorePolicy.gateEnabled,
     };
   }
 }

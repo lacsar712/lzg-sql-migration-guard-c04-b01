@@ -22,6 +22,9 @@ export class AnalysisHistory {
   @Column({ type: 'boolean' })
   ok: boolean;
 
+  @Column({ type: 'int', nullable: true })
+  score?: number;
+
   @Column({ name: 'findings_json', type: 'jsonb' })
   findingsJson: unknown;
 

@@ -51,6 +51,40 @@ fixtures/  示例 .sql 文件
 - `GET  /api/v1/fixtures`
 - `GET  /api/health`
 
+`POST /api/v1/analyze` 响应在原有字段基础上新增：
+
+| 字段 | 说明 |
+|------|------|
+| `score` | 风险分 0-100，按 severity 加权扣分 |
+| `passThreshold` | 当前生效的通过阈值 |
+| `gateEnabled` | 阈值门禁是否启用（见下节） |
+
+## 风险分与通过阈值
+
+每次分析都会计算风险分并随响应返回、在分析台展示：
+
+```
+score = max(0, 100 - 40*error数 - 10*warning数 - 2*info数)
+```
+
+各 severity 权重与通过阈值均可通过后端环境变量配置：
+
+| 环境变量 | 默认值 | 说明 |
+|----------|--------|------|
+| `RISK_GATE_ENABLED` | `false` | 阈值门禁开关（`true/1/yes/on` 视为开启） |
+| `RISK_PASS_THRESHOLD` | `70` | 通过阈值，score 低于该值视为未通过 |
+| `RISK_WEIGHT_ERROR` | `40` | 每条 error 扣分 |
+| `RISK_WEIGHT_WARNING` | `10` | 每条 warning 扣分 |
+| `RISK_WEIGHT_INFO` | `2` | 每条 info 扣分 |
+
+**默认行为（`RISK_GATE_ENABLED=false`）与旧版完全兼容**：`ok` 只取决于是否存在
+error 级 finding，score 仅供参考展示。
+
+**门禁启用后（`RISK_GATE_ENABLED=true`）的策略**：只要 `score < passThreshold`，
+`ok` 即为 `false`——即使只有 warning 没有 error（例如单条 warning 得 90 分，
+阈值设为 95 时不通过）。score 等于阈值仍算通过。存在 error 时无论分数如何
+都不通过。分析台会在"仅因分数低于阈值未通过"时给出明确提示。
+
 ## 固定 ruleId
 
 `no_drop_table`, `no_drop_column`, `no_delete_without_where`, `no_update_without_where`,

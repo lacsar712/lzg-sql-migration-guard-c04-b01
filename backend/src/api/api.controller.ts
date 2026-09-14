@@ -44,6 +44,7 @@ export class ApiController {
         sqlSummary: r.sqlSummary,
         dialect: r.dialect,
         ok: r.ok,
+        score: r.score ?? null,
         username: r.username,
         createdAt: r.createdAt,
         findingCount: Array.isArray(r.findingsJson)
@@ -63,6 +64,7 @@ export class ApiController {
       sqlFull: row.sqlFull,
       dialect: row.dialect,
       ok: row.ok,
+      score: row.score ?? null,
       findings: row.findingsJson,
       username: row.username,
       createdAt: row.createdAt,

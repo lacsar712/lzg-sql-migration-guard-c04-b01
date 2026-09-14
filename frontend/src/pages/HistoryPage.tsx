@@ -41,6 +41,7 @@ export default function HistoryPage() {
               <TableCell>方言</TableCell>
               <TableCell>摘要</TableCell>
               <TableCell>结果</TableCell>
+              <TableCell>风险分</TableCell>
               <TableCell>findings</TableCell>
               <TableCell>用户</TableCell>
             </TableRow>
@@ -64,13 +65,16 @@ export default function HistoryPage() {
                     color={item.ok ? 'success' : 'error'}
                   />
                 </TableCell>
+                <TableCell>
+                  {typeof item.score === 'number' ? item.score : '-'}
+                </TableCell>
                 <TableCell>{item.findingCount}</TableCell>
                 <TableCell>{item.username || '-'}</TableCell>
               </TableRow>
             ))}
             {!items.length && (
               <TableRow>
-                <TableCell colSpan={6}>暂无历史</TableCell>
+                <TableCell colSpan={7}>暂无历史</TableCell>
               </TableRow>
             )}
           </TableBody>

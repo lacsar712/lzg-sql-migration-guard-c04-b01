@@ -36,7 +36,9 @@ function inspectAddColumn(expr: any): boolean {
   const isAdd = action === 'add' || action === 'add column' || action.includes('add');
   if (!isAdd) return false;
 
-  const candidates: any[] = [];
+  // nullable/default_val 直接挂在 expr 上（当前 parser 的 AST 形状），
+  // 因此 expr 自身必须作为候选参与检查
+  const candidates: any[] = [expr];
   if (expr.column) candidates.push(expr.column);
   if (Array.isArray(expr.columns)) candidates.push(...expr.columns);
   if (expr.definition) candidates.push(expr.definition);

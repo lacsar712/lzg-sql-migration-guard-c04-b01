@@ -38,6 +38,13 @@ export default function HistoryDetailPage() {
           label={data.ok ? '通过' : '未通过'}
           color={data.ok ? 'success' : 'error'}
         />
+        {typeof data.score === 'number' && (
+          <Chip
+            size="small"
+            variant="outlined"
+            label={`风险分 ${data.score}`}
+          />
+        )}
       </Stack>
       <Typography variant="body2" color="text.secondary">
         {data.dialect} · {new Date(data.createdAt).toLocaleString()} ·{' '}

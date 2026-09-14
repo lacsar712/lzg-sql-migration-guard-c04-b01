@@ -21,6 +21,7 @@ export class HistoryService {
       sqlFull,
       dialect: result.dialect,
       ok: result.ok,
+      score: result.score,
       findingsJson: result.findings,
       username: username || undefined,
     });

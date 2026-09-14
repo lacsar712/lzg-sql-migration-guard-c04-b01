@@ -13,10 +13,10 @@ function isCreateIndex(stmt: any): boolean {
 }
 
 function isConcurrent(stmt: any, sql: string): boolean {
-  if (stmt.concurrently === true || stmt.concurrent === true) return true;
+  // parser 归一化后会给并发建索引的语句打 concurrently=true；
+  // 注意不能用 JSON.stringify 匹配 'concurrent'——AST 键名 concurrently:null 会误命中
+  if (stmt.concurrently || stmt.concurrent) return true;
   if (/CREATE\s+(UNIQUE\s+)?INDEX\s+CONCURRENTLY/i.test(sql)) return true;
-  const kw = JSON.stringify(stmt).toLowerCase();
-  if (kw.includes('concurrent')) return true;
   return false;
 }
 
